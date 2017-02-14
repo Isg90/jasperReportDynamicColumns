@@ -3,6 +3,8 @@ package dynamiccolumns.reportBuilder.model;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import net.sf.jasperreports.engine.design.JRDesignStyle;
+
 public class ReportColumn {
 	
 	private String name;
@@ -18,6 +20,8 @@ public class ReportColumn {
 	private boolean isDetailVariable = false;
 	private String columnDetailName = "";
 	private Class<?> columnDetailClass;
+	
+	private JRDesignStyle ownDetailStyle;
 
 	private ArrayList<ReportColumn> children = new ArrayList<ReportColumn>(0);
 	
@@ -150,5 +154,13 @@ public class ReportColumn {
 
 	public Class<?> getColumnDetailClass() {
 		return columnDetailClass;
+	}
+
+	public JRDesignStyle getOwnDetailStyle() {
+		return ownDetailStyle;
+	}
+
+	public void setOwnDetailStyle(JRDesignStyle ownDetailStyle) {
+		this.ownDetailStyle = ownDetailStyle;
 	}
 }

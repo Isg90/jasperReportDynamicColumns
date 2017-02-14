@@ -14,6 +14,7 @@ import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.ModeEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
@@ -33,12 +34,16 @@ public class ReportTemplateBuilder {
 	private int columnDetailHeight = 20;
 	private int maxColumnLevel = 1;
 	
+	private Color headerBackColor = new Color(20, 123, 196);
+	private Color headerForeColor = Color.white;
+	private boolean isNeedToColorDetailFieldsByValue = false;
+	
 	private int x = 0, y = 0;
 	
-	private Color lineColor = new Color(0,0,0); //new Color(240, 248, 255, 255);
+	private Color lineColor = new Color(125, 190, 227); /*new Color(0,0,0); */
 	private ArrayList<ReportColumn> columns = new ArrayList<>(0);
 	private String listName = "Лист";
-	private JasperDesign jd;
+	private JasperDesign jd = new JasperDesign();
 	private int numberOfColumns = 0;
 	private int reportWidth = 0;
 	private int reportHeight = 0;
@@ -53,7 +58,6 @@ public class ReportTemplateBuilder {
 	}
 	
 	public JasperDesign generateReportTemplate() throws JRException {
-		jd = new JasperDesign();
 		jd.setName(listName);
 		jd.setColumnSpacing(0);
 		jd.setLeftMargin(REPORT_PADDING);
@@ -73,8 +77,6 @@ public class ReportTemplateBuilder {
 		JRDesignStyle reportHeaderStyle = updateStyleBox(
 				buildReportStyle("reportHeaderStyle", true, 14f, HorizontalTextAlignEnum.CENTER), lineColor, 0f);
 		jd.addStyle(reportHeaderStyle);
-		
-		addReportParameter("ReportData", net.sf.jasperreports.engine.data.JRBeanCollectionDataSource.class);
 		
 		addReportParameter("ReportName", java.lang.String.class);
 		
@@ -114,6 +116,11 @@ public class ReportTemplateBuilder {
 		x = 0;
 		
 		JRDesignStyle columnHeaderStyle = updateStyleBox(buildReportStyle("columnHeader", false, 12f, columnHeaderHorizontalAlign), lineColor, 1f);
+		
+		columnHeaderStyle.setMode(ModeEnum.OPAQUE); //without it element will never be painted
+
+		columnHeaderStyle.setBackcolor(headerBackColor);
+		columnHeaderStyle.setForecolor(headerForeColor);
 		jd.addStyle(columnHeaderStyle);
 		
 		for (ReportColumn column : columns) {
@@ -195,16 +202,26 @@ public class ReportTemplateBuilder {
 				
 				String expressionName = " "; 
 				
+				JRDesignStyle style = columnDetailStyle;
+				
 				if (!column.getColumnDetailName().isEmpty()) {
 					if (column.isDetailVariable()) {
-						addReportField(column.getColumnDetailName(), column.getColumnDetailClass());					
+						
+						addReportField(column.getColumnDetailName(), column.getColumnDetailClass());											
+						
+						if (column.getOwnDetailStyle() != null) {
+							style = column.getOwnDetailStyle();
+							jd.addStyle(style);
+						}
+						
 						expressionName = "$F{" + column.getColumnDetailName() + "}";
 					} else {
 						expressionName = "\"" + column.getColumnDetailName() + "\"";
 					}
 				}
 				
-				JRDesignTextField colDetail = buildTextField(columnDetailStyle, expressionName, columnDetailVerticalAlign, columnDetailHorizontalAlign, true, column.getFontSize());
+				JRDesignTextField colDetail = buildTextField(style, expressionName, columnDetailVerticalAlign, columnDetailHorizontalAlign, true, column.getFontSize());
+				colDetail.setMode(ModeEnum.OPAQUE);
 				
 				int resultColumnWidth = 0;
 				if (column.getColumnWidth() != 0)
@@ -239,7 +256,7 @@ public class ReportTemplateBuilder {
 		return tField;
 	}
 
-	private JRDesignField addReportField(String name, Class<?> classValue) throws JRException {
+	public JRDesignField addReportField(String name, Class<?> classValue) throws JRException {
 		JRDesignField field = new JRDesignField();
 		field.setName(name);
 		field.setValueClass(classValue);
@@ -247,7 +264,7 @@ public class ReportTemplateBuilder {
 		return field;
 	}
 
-	private void addReportParameter(String name, Class<?> classValue) throws JRException {
+	public void addReportParameter(String name, Class<?> classValue) throws JRException {
 		JRDesignParameter reportName = new JRDesignParameter();
 		reportName.setName(name);
 		reportName.setValueClass(classValue);
@@ -328,5 +345,29 @@ public class ReportTemplateBuilder {
 
 	public void setColumnDetailHeight(int columnDetailHeight) {
 		this.columnDetailHeight = columnDetailHeight;
+	}
+
+	public Color getHeaderBackColor() {
+		return headerBackColor;
+	}
+
+	public void setHeaderBackColor(Color headerBackColor) {
+		this.headerBackColor = headerBackColor;
+	}
+
+	public Color getHeaderForeColor() {
+		return headerForeColor;
+	}
+
+	public void setHeaderForeColor(Color headerForeColor) {
+		this.headerForeColor = headerForeColor;
+	}
+
+	public boolean isNeedToColorDetailFieldsByValue() {
+		return isNeedToColorDetailFieldsByValue;
+	}
+
+	public void setNeedToColorDetailFieldsByValue(boolean isNeedToColorDetailFieldsByValue) {
+		this.isNeedToColorDetailFieldsByValue = isNeedToColorDetailFieldsByValue;
 	}
 }

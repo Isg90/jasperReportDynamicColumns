@@ -17,6 +17,9 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
+import net.sf.jasperreports.engine.design.JRDesignConditionalStyle;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
@@ -25,6 +28,10 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 
 public class TemplateChecker {
+	
+	private static final Color GREEN_COLOR = new Color(229,255,229);
+	private static final Color RED_COLOR = new Color(255,77,106);
+	
 	public static void main(String[] args) throws JRException, FileNotFoundException, IOException {
 		
 		ReportColumn column1 = buildColumnWithDetails("", 1, 1, "par1", java.lang.String.class);
@@ -36,8 +43,14 @@ public class TemplateChecker {
 		column2.getChildren().add(c2Child1);
 		column2.getChildren().add(c2Child2);
 		
+		JRDesignStyle ownStyle = buildPaintedDetailsConditionStyle("par2", "coloredPar2");
+		c2Child2.setOwnDetailStyle(ownStyle);
+		
 		ReportColumn columnWithDetails = buildColumnWithDetails("aaa1", 3, 1, "par3", java.lang.Integer.class);
+		ownStyle = buildPaintedDetailsConditionStyle("par3", "coloredPar3");
+		columnWithDetails.setOwnDetailStyle(ownStyle);
 		columnWithDetails.setColumnWidth(40);
+		
 		c2Child1.getChildren().add(columnWithDetails);
 		c2Child1.getChildren().add(buildColumnWithDetails("aaa2", 3, 2, "par4", java.lang.Integer.class));
 		columnWithDetails = buildColumnWithDetails("aaa3", 3, 3, "par5", java.lang.Integer.class);
@@ -59,7 +72,7 @@ public class TemplateChecker {
 		columns.add(column4);
 		
 		ReportTemplateBuilder tb = new ReportTemplateBuilder(columns, "newReport", 3);
-		tb.setLineColor(Color.green);
+		tb.setLineColor( new Color(125, 190, 227));
 		JasperDesign jd = tb.generateReportTemplate();
 		
 		JasperReport jasperReport = JasperCompileManager.compileReport(jd);
@@ -88,6 +101,37 @@ public class TemplateChecker {
 		}
 	}
 
+	private static JRDesignStyle buildPaintedDetailsConditionStyle(String paramName, String styleName) {
+		JRDesignStyle style = new JRDesignStyle();
+		style.setName(styleName);
+		
+		JRDesignExpression expr = new JRDesignExpression("$F{" + paramName + "} == 0");
+		JRDesignConditionalStyle condStyle = new JRDesignConditionalStyle();
+		condStyle.setBackcolor(Color.WHITE);
+		condStyle.setForecolor(Color.BLACK);
+		
+		condStyle.setConditionExpression(expr);
+		style.addConditionalStyle(condStyle);
+		
+		expr = new JRDesignExpression("$F{" + paramName + "} < 0");
+		condStyle = new JRDesignConditionalStyle();
+		condStyle.setBackcolor(GREEN_COLOR);
+		condStyle.setForecolor(Color.BLACK);
+		
+		condStyle.setConditionExpression(expr);
+		style.addConditionalStyle(condStyle);
+		
+		expr = new JRDesignExpression("$F{" + paramName + "} > 0");
+		condStyle = new JRDesignConditionalStyle();
+		condStyle.setBackcolor(RED_COLOR);
+		condStyle.setForecolor(Color.BLACK);
+		
+		condStyle.setConditionExpression(expr);
+		style.addConditionalStyle(condStyle);
+		
+		return style;
+	}
+
 	private static ReportColumn buildColumnWithDetails(String colName, int colLevel, int colHOrderNum, String detailName, Class<?> classValue) {
 		ReportColumn childColumn = new ReportColumn(colName, colLevel, colHOrderNum);
 		childColumn.setDetailVariable(true);
@@ -98,17 +142,17 @@ public class TemplateChecker {
 	private static JRMapCollectionDataSource generateReportData() {
 		List<Map<String, ?>> collection = new ArrayList<Map<String, ?>>();
 		Map<String, Object> m1;
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 100; i++) {
 			m1 = new HashMap<>();
 			m1.put("par1", "Rus" + i);
-			m1.put("par2", 0 + i*3);
-			m1.put("par3", 1 + i*3);
-			m1.put("par4", 2 + i*3);
-			m1.put("par5", 3 + i*3);
-			m1.put("par6", 4 + i*3);
-			m1.put("par7", 5 + i*3);
-			m1.put("par8", 6 + i*3);
-			m1.put("par9", 7 + i*3);
+			m1.put("par2", -5 + (int)(Math.random() * 10));
+			m1.put("par3", -5 + (int)(Math.random() * 10));
+			m1.put("par4", -5 + (int)(Math.random() * 10));
+			m1.put("par5", -5 + (int)(Math.random() * 10));
+			m1.put("par6", -5 + (int)(Math.random() * 10));
+			m1.put("par7", -5 + (int)(Math.random() * 10));
+			m1.put("par8", -5 + (int)(Math.random() * 10));
+			m1.put("par9", -5 + (int)(Math.random() * 10));
 			
 			collection.add(m1);
 		}
